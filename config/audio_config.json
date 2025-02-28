@@ -1,0 +1,1 @@
+{"data_path": "'./data", "seperator_model_type": "umx", "diarization_model":"pyannote/speaker-diarization"}

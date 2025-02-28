@@ -1,0 +1,9 @@
+{   
+    "model_path": "/ibk/model", 
+    "model_name": "kfdeberta-trained",
+    "embedding_model": "kakaobank/kf-deberta-base",
+    "language_model": "davidkim205/komt-mistral-7b-v1",
+    "random_state": 42,
+    "max_tokens": 500, 
+    "temperature": 0.3
+}
