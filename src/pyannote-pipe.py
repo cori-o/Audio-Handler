@@ -42,4 +42,13 @@ class PyannoteDIAR(PyannotePipe):
     def __init__(self, args):
         super().__init__(args)
     
-    def get_diar()
+    def get_diar(self, pipeline, audio_file, duration_thresh):
+        output = pipeline(audio_file)
+        diar_result = [] 
+        for segment, _, speaker in output.itertracks(yield_label=True):
+            start_time = segment.start 
+            end_time = segment.end
+            duration = end_time - start_time 
+            if duration >= duration_thresh:
+                diar_result.append([(start_time, end_time), speaker])
+        return diar_result
