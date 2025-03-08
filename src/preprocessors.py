@@ -1,4 +1,5 @@
 
+from scipy.spatial.distance import cdist
 from pydub import AudioSegment
 import soundfile as sf
 import numpy as np 
@@ -33,7 +34,9 @@ class DataProcessor:
 
 
 class VectorProcessor:
-    pass 
+    def calc_similarity(self, emb1, emb2, metric):
+        distance = cdist(emb1, emb2, metric=metric)[0, 0]
+        return distance
 
 
 class AudioFileProcessor:
