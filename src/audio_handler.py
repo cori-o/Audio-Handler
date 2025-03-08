@@ -40,25 +40,6 @@ class NoiseHandler:
         wav_buffer.seek(0)   # 파일 포인터를 처음으로 이동
         return wav_buffer
 
-    def filter_audio_with_pydub(self, input_file, high_cutoff=200, low_cutoff=3000, output_file=None):
-        '''
-        pydub (python)을 이용한 오디오 필터링 (고역대, 저역대)
-        '''
-        try:
-            audio = AudioSegment.from_file(input_file)
-        except:
-            audio = input_file
-        filtered_audio = high_pass_filter(audio, cutoff=high_cutoff)    # 고역 필터 (200Hz 이상)
-        filtered_audio = low_pass_filter(filtered_audio, cutoff=low_cutoff)    # 저역 필터 (3000Hz 이하)
-        if output_file:
-            filtered_audio.export(output_file, format="wav")
-            print(f"Filtered audio saved to {output_file}")
-        else:
-            audio_buffer = io.BytesIO()
-            filtered_audio.export(audio_buffer, format="wav")
-            audio_buffer.seek(0)
-            return audio_buffer
-
     def filter_audio_with_ffmpeg(self, input_file, high_cutoff=100, low_cutoff=3500, output_file=None):
         """
         FFmpeg을 사용한 오디오 필터링 (고역대, 저역대).
@@ -168,17 +149,6 @@ class VoiceEnhancer:
             sf.write(audio_buffer, y_filtered, sr, format="WAV")
             audio_buffer.seek(0)  # 버퍼의 시작 위치로 이동
             return audio_buffer
-
-    def normalize_audio_pydub(self, audio_file_path, audio_file_name, target_dbfs=-14):
-        audio = AudioSegment.from_file(os.path.join(audio_file_path, audio_file_name))
-        
-        # RMS(root mean square) 기반 볼륨 정규화
-        normalized_audio = audio.apply_gain(-audio.dBFS)
-
-        # 정규화된 오디오 저장
-        output_file = os.path.join(audio_file_path, "pydub_nr_" + audio_file_name)
-        normalized_audio.export(output_file, format="wav")
-        return output_file
 
     def normalize_audio_lufs(self, audio_input, target_lufs=-14.0, output_file=None):
         """
