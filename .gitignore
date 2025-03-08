@@ -1,1 +1,2 @@
-./get_timestamp.py
+get_timestamp.py
+.env
