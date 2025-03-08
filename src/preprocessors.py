@@ -9,16 +9,7 @@ import wave
 import re
 import os
 
-class DataProcessor:
-    def flatt_list(self, nested_list):
-        flat_list = []
-        for item in nested_list:
-            if isinstance(item, list):  # 리스트 내부의 리스트 처리
-                flat_list.extend(self.flatt_list(item))
-            else:
-                flat_list.append(item)
-        return flat_list
-    
+class DataProcessor:    
     def cleanse_text(self, text):
         '''
         특수문자("'@) 및 문장 맨 끝 마침표 제거
