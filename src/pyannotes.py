@@ -7,6 +7,7 @@ import torch
 class Pyannot:
     def __init__(self, args):
         self.args = args 
+        self.set_gpu()
     
     def set_gpu(self):
         self.device = torch.device('cuda') if torch.cuda.is_available() else "cpu"
@@ -24,7 +25,6 @@ class PyannotEMB(Pyannot):
         window = whole : 
         window = sliding : 
         '''
-        self.set_gpu()
         if window == 'whole':
             self.inference = Inference(model, window=window)
             self.inference.to(self.device)
