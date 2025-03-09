@@ -1,6 +1,8 @@
+from pyannote.audio.pipelines import Resegmentation
 from pyannote.audio import Pipeline 
-from abc import ABC, abstractmethod
+from pyannote.audio import Model
 import torch 
+
 
 class PyannotePipe:
     def __init__(self, args):
@@ -38,7 +40,7 @@ class PyannoteVADP(PyannotePipe):
         return vad_timestamp
     
 
-class PyannoteDIAR(PyannotePipe):
+class PyannoteDIARP(PyannotePipe):
     def __init__(self, args):
         super().__init__(args)
     
@@ -52,3 +54,22 @@ class PyannoteDIAR(PyannotePipe):
             if duration >= duration_thresh:
                 diar_result.append([(start_time, end_time), speaker])
         return diar_result
+    
+
+class PyannoteResegmentP(PyannotePipe):
+    def __init__(self, args):
+        super().__init__(args)
+    
+    def resegment(self, audio_file, baseline, onset=0.5, offset=0.5, min_duration_on=0.5, min_duration_off=0.5):
+        model = Model.from_pretrained("pyannote/segmentation", use_auth_token=self.args['hf_key'])
+        pipeline = Resegmentation(segmentation=model, diarization='baseline')
+        hyper_params = {
+            "onset": onset, 
+            "offset": offset, 
+            "min_duration_on": min_duration_on,
+            "min_duration_off": min_duration_off
+        }
+        pipeline.instantiate(hyper_params)
+        resegmented_baseline = pipeline({"audio": audio_file, "baseline": baseline})
+        return resegmented_baseline
+        
