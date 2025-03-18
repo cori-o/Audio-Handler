@@ -22,7 +22,7 @@ def main(args):
     csv_filename = 'vad_' + args.audio_file.split('.')[0] + '.csv'
     df.to_csv(os.path.join(args.data_path, csv_filename), index=False)
 
-
+    
 if __name__ == '__main__':
     cli_parser = argparse.ArgumentParser()
     cli_parser.add_argument('--config_path', type=str, default='./config')
