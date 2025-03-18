@@ -35,7 +35,7 @@ class PyannoteVADP(PyannotePipe):
         }
         self.pipeline.instantiate(hyper_params)
         output = self.pipeline(audio_file)
-        # print(f'output: {output}')
+        print(f'vad task done')
         vad_timestamp = [] 
         for speech in output.get_timeline().support():
             vad_timestamp.append((speech.start, speech.end))
@@ -49,6 +49,7 @@ class PyannoteDIARP(PyannotePipe):
     
     def get_diar(self, audio_file, duration_thresh=0.7):
         output = self.pipeline(audio_file)
+        print(f'diar task done')
         diar_result = [] 
         for segment, _, speaker in output.itertracks(yield_label=True):
             start_time = segment.start 
