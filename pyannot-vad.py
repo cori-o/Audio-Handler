@@ -19,7 +19,7 @@ def main(args):
     vad_pipe = PyannoteVADP(audio_config)
     vad_result = vad_pipe.get_vad(args.audio_file)
     df = pd.DataFrame(vad_result, columns=["time_s", "time_e"])
-    csv_filename = args.audio_file.split('.')[0] + '.csv'
+    csv_filename = 'vad_' + args.audio_file.split('.')[0] + '.csv'
     df.to_csv(os.path.join(args.data_path, csv_filename), index=False)
 
 
