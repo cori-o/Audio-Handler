@@ -19,7 +19,9 @@ def main(args):
     diar_pipe = PyannoteDIARP(audio_config)
     diar_result = diar_pipe.get_diar(args.audio_file)
     df = pd.DataFrame(diar_result, columns=["timestamp", "speaker"])
-    df.to_csv("./dataset/diarization_20250220.csv", index=False)
+    csv_filename = 'diar_' + args.audio_file.split('.')[0] + '.csv'
+    df.to_csv(os.path.join(args.data_path, csv_filename), index=False)
+
 
 if __name__ == '__main__':
     cli_parser = argparse.ArgumentParser()
