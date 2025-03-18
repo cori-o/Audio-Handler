@@ -23,7 +23,7 @@ class PyannoteVADP(PyannotePipe):
         super().__init__(config)
         self.set_pipeline(self.config['vad_model'])
 
-    def get_vad(self, pipeline, audio_file, onset=0.5, offset=0.5, min_duration_on=0.5, min_duration_off=0.5):
+    def get_vad(self, audio_file, onset=0.5, offset=0.5, min_duration_on=0.5, min_duration_off=0.5):
         '''
         audio_file = "data_path/tets.wav"
         '''
@@ -33,8 +33,8 @@ class PyannoteVADP(PyannotePipe):
             "min_duration_on": min_duration_on,
             "min_duration_off": min_duration_off
         }
-        pipeline.instantiate(hyper_params)
-        output = pipeline(audio_file)
+        self.pipeline.instantiate(hyper_params)
+        output = self.pipeline(audio_file)
         # print(f'output: {output}')
         vad_timestamp = [] 
         for speech in output.get_timeline().support():
