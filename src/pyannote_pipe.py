@@ -47,8 +47,8 @@ class PyannoteDIARP(PyannotePipe):
         super().__init__(config)
         self.set_pipeline(self.config['diarization_model'])
     
-    def get_diar(self, pipeline, audio_file, duration_thresh=0.7):
-        output = pipeline(audio_file)
+    def get_diar(self, audio_file, duration_thresh=0.7):
+        output = self.pipeline(audio_file)
         diar_result = [] 
         for segment, _, speaker in output.itertracks(yield_label=True):
             start_time = segment.start 
