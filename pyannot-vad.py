@@ -1,27 +1,33 @@
-from pyannote.audio import Pipeline
 from dotenv import load_dotenv
+from src import PyannoteVADP
 import pandas as pd
+import argparse
 import torch
 import time
 import json
 import os 
 
-load_dotenv()
-hf_api_key = os.getenv('HF_API')
 
-pipeline = Pipeline.from_pretrained("pyannote/voice-activity-detection", use_auth_token=hf_api_key)
-start = time.time()
-pipeline.to(torch.device("cuda"))
-pipeline.instantiate({
-    "onset": 0.3,  # 감지 민감도 증가 (기본값 0.5)
-    "offset": 0.3,  # 감지 지속 시간 조정 (기본값 0.5)
-})
-output = pipeline("./meeting_records/20250220.wav")
+def main(args):
+    load_dotenv()
+    hf_api_key = os.getenv('HF_API')
+    with open(os.path.join(args.config_path, args.config_file)) as f:
+        audio_config = json.load(f)
+    audio_config['hf_key'] = hf_api_key
+    
+    start = time.time()
+    vad_pipe = PyannoteVADP(audio_config)
+    vad_result = vad_pipe.get_vad(args.audio_file)
+    df = pd.DataFrame(vad_result, columns=["time_s", "time_e"])
+    csv_filename = args.audio_file.split('.')[0] + '.csv'
+    df.to_csv(os.path.join(args.data_path, csv_filename), index=False)
 
-vad_timestamp = [] 
-for speech in output.get_timeline().support():
-    vad_timestamp.append((speech.start, speech.end))
 
-print(vad_timestamp)
-print(f'end: {round(time.time() - start, 2)}')
-pd.DataFrame(zip(vad_timestamp), columns=['timestamp']).to_csv(os.path.join('./meeting_records', 'vad_20250220.csv'), index=False)
+if __name__ == '__main__':
+    cli_parser = argparse.ArgumentParser()
+    cli_parser.add_argument('--config_path', type=str, default='./config')
+    cli_parser.add_argument('--data_path', type=str, default='./dataset')
+    cli_parser.add_argument('--config_file', type=str, default='audio_config.json')
+    cli_parser.add_argument('--audio_file', type=str, required=True)
+    cli_args = cli_parser.parse_args()
+    main(cli_args)
