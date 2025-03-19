@@ -100,8 +100,8 @@ class PyannotDIAR(Pyannot):
     def __init__(self):
         super().__init__()
   
-    def get_diar_result(self, pipeline, audio_file):
-        diarization = pipeline(audio_file)
+    def get_diar_result(self, pipeline, audio_file, num_speakers=None, return_embeddings=False):
+        diarization = pipeline(audio_file, num_speakers=num_speakers, return_embeddings=return_embeddings)
         diar_result = []
         for segment, _, speaker in diarization.itertracks(yield_label=True):
             start_time = segment.start 
