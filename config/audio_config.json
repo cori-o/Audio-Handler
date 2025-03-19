@@ -1,9 +1,0 @@
-{
-    "data_path": "./data", 
-    "seperator_model_type": "umx", 
-    "local_model_path": "model",
-    "diarization_model":"pyannote/speaker-diarization", 
-    "vad_model": "pyannote/voice-activity-detection", 
-    "emb_model": "pyannote/embedding",
-    "segment_model": "pyannote/segmentation"
-}
