@@ -6,41 +6,60 @@ import torch
 import os  
 
 class Pyannot:
-    def __init__(self, config):
-        self.config = config 
+    def __init__(self): 
+        self.set_seed()
         self.set_gpu()
-    
+
+    def set_seed(self, seed=42):
+        """랜덤 시드 설정"""
+        self.seed = seed
+        random.seed(seed)  
+        np.random.seed(seed)  
+        torch.manual_seed(seed)  
+        torch.cuda.manual_seed_all(seed)    # GPU 연산을 위한 시드 설정
+        torch.backends.cudnn.deterministic = True   # 연산 재현성을 보장
+        torch.backends.cudnn.benchmark = False    # 성능 최적화 옵션 비활성화
+
     def set_gpu(self):
         self.device = torch.device('cuda') if torch.cuda.is_available() else "cpu"
     
-    def set_model(self, model_name):
-        self.model = Model.from_pretrained(model_name, use_auth_token=self.config['hf_key'], force_download=False)
-    
+    def load_pipeline_from_pretrained(self, path_to_config: str) -> Pipeline:
+        '''
+        the paths in the config are relative to the current working directory
+        so we need to change the working directory to the model path
+        and then change it back
+        * first .parent is the folder of the config, second .parent is the folder containing the 'models' folder
+        '''
+        path_to_config = Path(path_to_config)
+        print(f"Loading pyannote pipeline from {path_to_config}...")
+        cwd = Path.cwd().resolve()    # store current working directory
+
+        cd_to = path_to_config.parent.parent.resolve()
+        os.chdir(cd_to)
+
+        pipeline = Pipeline.from_pretrained(path_to_config)
+        os.chdir(cwd)
+        return pipeline.to(self.device)
+
 
 class PyannotEMB(Pyannot):
-    def __init__(self, config):
-        super().__init__(config)
-        # self.set_model(self.config['emb_model'])
+    def __init__(self):
+        super().__init__()
 
     def set_config(self):
         pass 
 
-    def set_inference(self, window, duration=None, step=None, model_loc='local'):
+    def set_inference(self, config, window, duration=None, step=None, model_loc='local'):
         '''
         window = whole : 
         window = sliding : 
         '''
-        if model_loc == 'hub':
-            if window == 'whole':
-                self.inference = Inference(self.config['emb_model'], window=window, device=self.device)
-            elif window == 'sliding':
-                self.inference = Inference(self.config['emb_model'], window=window, duration=duration, step=step, device=self.device)
-        elif model_loc == 'local':
-            if window == 'whole':
-                self.inference = Inference(os.path.join(self.config['local_model_path'], 'emb', 'config.yaml'), window=window, device=self.device)
-            elif window == 'sliding':
-                self.inference = Inference(os.path.join(self.config['local_model_path'], 'emb'), 
-                                            window=window, duration=duration, step=step, device=self.device)
+        self.config = config
+        if window == 'whole':
+            self.inference = Inference(os.path.join(self.config['local_model_path'], 'emb', 'config.yaml'), window=window, device=self.device)
+        elif window == 'sliding':
+            self.inference = Inference(os.path.join(self.config['local_model_path'], 'emb'), 
+                                        window=window, duration=duration, step=step, device=self.device)
 
     def get_embedding(self, inference, audio_file, time_s=None, time_e=None):
         '''
@@ -59,14 +78,11 @@ class PyannotEMB(Pyannot):
 
 class PyannotVAD(Pyannot): 
     ''' voice activity detection  - pytorch.bin 모델 없음 ''' 
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self):
+        super().__init__()
 
-    def set_inference(self, model_loc='local'):
-        if model_loc == 'hub':
-            self.inference = Inference(self.config['voice_activity_detection'], device=self.device)
-        elif model_loc == 'local':
-            self.inference = Inference(os.path.join(self.config['local_model_path'], 'segment'), device=self.device)
+    def set_inference(self):
+        self.inference = Inference(os.path.join(self.config['local_model_path'], 'segment'), device=self.device)
     
     def set_config(self):
         pass 
@@ -78,26 +94,16 @@ class PyannotVAD(Pyannot):
 
 
 class PyannotDIAR(Pyannot):
-    def __init__(self, args):
-        super().__init__(args)
-
-    def set_inference(self, model_loc='local'):
-        if model_loc == 'hub':
-            self.inference = Inference(self.config['diarization_model'], device=self.device)
-        elif model_loc == 'local':
-            self.inference = Inference(os.path.join(self.config['local_model_path'], 'diar'), device=self.device)
-    
-    def set_config(self):
-        pass 
-
-    def get_diar_result(self, inference, audio_file):
-        output = inference(audio_file)
-        diar_result = [] 
-        for segment, _, speaker in output.itertracks(yield_label=True):
+    def __init__(self):
+        super().__init__()
+  
+    def get_diar_result(self, pipeline, audio_file):
+        diarization = pipeline(audio_file)
+        diar_result = []
+        for segment, _, speaker in diarization.itertracks(yield_label=True):
             start_time = segment.start 
             end_time = segment.end
             duration = end_time - start_time 
-            if duration >= duration_thresh:
+            if duration >= 0.7:
                 diar_result.append([(start_time, end_time), speaker])
         return diar_result
-    
