@@ -94,7 +94,12 @@ class PyannotVAD(Pyannot):
         import torchaudio
         waveform, sample_rate = torchaudio.load(audio_file)
         audio_in_memory = {"waveform": waveform, "sample_rate": sample_rate}
-        print(pipeline(audio_in_memory))
+        vad_result = pipeline(audio_in_memory)
+
+        vad_timestamp = [] 
+        for speech in vad_result.get_timeline().support():
+            vad_timestamp.append((speech.start, speech.end))
+        return vad_timestamp
 
 
 class PyannotDIAR(Pyannot):
