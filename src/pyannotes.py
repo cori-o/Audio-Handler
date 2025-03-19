@@ -16,10 +16,10 @@ class Pyannot:
     def set_seed(self, seed=42):
         """랜덤 시드 설정"""
         self.seed = seed
-        random.seed(seed)  
-        np.random.seed(seed)  
-        torch.manual_seed(seed)  
-        torch.cuda.manual_seed_all(seed)    # GPU 연산을 위한 시드 설정
+        random.seed(self.seed)  
+        np.random.seed(self.seed)  
+        torch.manual_seed(self.seed)  
+        torch.cuda.manual_seed_all(self.seed)    # GPU 연산을 위한 시드 설정
         torch.backends.cudnn.deterministic = True   # 연산 재현성을 보장
         torch.backends.cudnn.benchmark = False    # 성능 최적화 옵션 비활성화
 
@@ -102,11 +102,14 @@ class PyannotDIAR(Pyannot):
   
     def get_diar_result(self, pipeline, audio_file, num_speakers=None, return_embeddings=False):
         diarization = pipeline(audio_file, num_speakers=num_speakers, return_embeddings=return_embeddings)
-        diar_result = []
-        for segment, _, speaker in diarization.itertracks(yield_label=True):
-            start_time = segment.start 
-            end_time = segment.end
-            duration = end_time - start_time 
-            if duration >= 0.7:
-                diar_result.append([(start_time, end_time), speaker])
-        return diar_result
+        if return_embeddings == False:
+            diar_result = []
+            for segment, _, speaker in diarization.itertracks(yield_label=True):
+                start_time = segment.start 
+                end_time = segment.end
+                duration = end_time - start_time 
+                if duration >= 0.7:
+                    diar_result.append([(start_time, end_time), speaker])
+            return diar_result
+        else:
+            return diarization
