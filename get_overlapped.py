@@ -6,7 +6,7 @@ import os
 
 
 def main(args):
-    pyannot_overlap = PyannotOLP()
+    pyannot_overlap = PyannotOSD()
     pipeline = pyannot_overlap.load_pipeline_from_pretrained(os.path.join(args.model_config_path, args.model_config_file))  
     print(pipeline)
     overlap_result = pyannot_overlap.get_overlapped_result(pipeline, args.audio_file)
