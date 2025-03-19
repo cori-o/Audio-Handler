@@ -1,8 +1,11 @@
 from pyannote.audio import Inference
+from pyannote.audio import Pipeline
 from pyannote.audio import Model 
 from pyannote.core import Segment
+from pathlib import Path
 import numpy as np 
 import torch
+import random 
 import os  
 
 class Pyannot:
@@ -87,10 +90,11 @@ class PyannotVAD(Pyannot):
     def set_config(self):
         pass 
 
-    def get_vad_timestamp(self, inference, audio_file):
-        output = inference(audio_file)
-        vad_timestamp = [(speech.start, speech.end) for speech in output.get_timeline().support()]
-        return vad_timestamp
+    def get_vad_timestamp(self, pipeline, audio_file):
+        import torchaudio
+        waveform, sample_rate = torchaudio.load(audio_file)
+        audio_in_memory = {"waveform": waveform, "sample_rate": sample_rate}
+        print(pipeline(audio_in_memory))
 
 
 class PyannotDIAR(Pyannot):
