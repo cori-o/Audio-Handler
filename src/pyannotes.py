@@ -84,12 +84,6 @@ class PyannotVAD(Pyannot):
     def __init__(self):
         super().__init__()
 
-    def set_inference(self):
-        self.inference = Inference(os.path.join(self.config['local_model_path'], 'segment'), device=self.device)
-    
-    def set_config(self):
-        pass 
-
     def get_vad_timestamp(self, pipeline, audio_file):
         import torchaudio
         waveform, sample_rate = torchaudio.load(audio_file)
