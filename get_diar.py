@@ -1,6 +1,5 @@
 from src import PyannotDIAR
 from pyannote.audio import Pipeline
-from pathlib import Path
 import argparse
 import torch
 import os 
