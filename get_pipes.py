@@ -3,24 +3,21 @@ from pyannote.audio import Pipeline
 import torch
 import os 
 
-def load_pipeline_from_pretrained(path_to_config: str | Path) -> Pipeline:
-    path_to_config = Path(path_to_config)
 
-    print(f"Loading pyannote pipeline from {path_to_config}...")
+def load_pipeline_from_pretrained(path_to_config: str | Path) -> Pipeline:
     # the paths in the config are relative to the current working directory
     # so we need to change the working directory to the model path
     # and then change it back
-
+    path_to_config = Path(path_to_config)
+    print(f"Loading pyannote pipeline from {path_to_config}...")
     cwd = Path.cwd().resolve()  # store current working directory
 
     # first .parent is the folder of the config, second .parent is the folder containing the 'models' folder
     cd_to = path_to_config.parent.parent.resolve()
-
     print(f"Changing working directory to {cd_to}")
     os.chdir(cd_to)
 
     pipeline = Pipeline.from_pretrained(path_to_config)
-
     print(f"Changing working directory back to {cwd}")
     os.chdir(cwd)
     return pipeline
@@ -36,7 +33,7 @@ for segment, _, speaker in diarization.itertracks(yield_label=True):
     start_time = segment.start 
     end_time = segment.end
     duration = end_time - start_time 
-    if duration >= duration_thresh:
+    if duration >= 0.7:
         diar_result.append([(start_time, end_time), speaker])
 
 print(diar_result)
