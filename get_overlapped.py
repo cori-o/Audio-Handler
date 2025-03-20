@@ -15,7 +15,7 @@ def main(args):
 if __name__ == '__main__':
     cli_parser = argparse.ArgumentParser()
     cli_parser.add_argument('--model_config_path', type=str, default='./models')
-    cli_parser.add_argument('--model_config_file', type=str, default='pyannote_diarization_config.yaml')
+    cli_parser.add_argument('--model_config_file', type=str, default='pyannote_osd_config.yaml')
     cli_parser.add_argument('--audio_file', type=str, required=True)
     cli_args = cli_parser.parse_args()
     main(cli_args)
