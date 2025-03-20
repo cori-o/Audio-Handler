@@ -1,6 +1,7 @@
 from pyannote.audio import Inference
 from pyannote.audio import Pipeline
 from pyannote.audio import Model 
+from pyannote.audio import Audio
 from pyannote.core import Segment
 from pathlib import Path
 import numpy as np 
@@ -45,40 +46,6 @@ class Pyannot:
         return pipeline.to(self.device)
 
 
-class PyannotEMB(Pyannot):
-    def __init__(self):
-        super().__init__()
-
-    def set_config(self):
-        pass 
-
-    def set_inference(self, config, window, duration=None, step=None, model_loc='local'):
-        '''
-        window = whole : 
-        window = sliding : 
-        '''
-        self.config = config
-        if window == 'whole':
-            self.inference = Inference(os.path.join(self.config['local_model_path'], 'emb', 'config.yaml'), window=window, device=self.device)
-        elif window == 'sliding':
-            self.inference = Inference(os.path.join(self.config['local_model_path'], 'emb'), 
-                                        window=window, duration=duration, step=step, device=self.device)
-
-    def get_embedding(self, inference, audio_file, time_s=None, time_e=None):
-        '''
-        audio_file: test.wav
-        '''
-        if time_s == None: 
-            embedding = inference(audio_file)
-            print(np.shape(embedding.data))
-            return embedding
-        else:
-            excerpt = Segment(time_s, time_e)
-            embedding = inference.crop(audio_file, excerpt)
-            print(np.shape(embedding.data))
-            return embedding
-
-
 class PyannotVAD(Pyannot): 
     ''' voice activity detection  - pytorch.bin 모델 없음 ''' 
     def __init__(self):
@@ -113,3 +80,11 @@ class PyannotDIAR(Pyannot):
             return diar_result
         else:
             return diarization
+
+class PyannotOSD(Pyannot):   # Overlap Speech Detection
+    def __init__(self):
+        super().__init__()
+
+    def get_overlapped_result(self, pipeline, audio_file):
+        overlap_result = pipeline(audio_file)
+        return overlap_result
