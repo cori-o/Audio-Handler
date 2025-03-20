@@ -1,0 +1,8 @@
+pipeline:
+  name: pyannote.audio.pipelines.OverlappedSpeechDetection
+  params:
+    segmentation: models/pyannote_model_segmentation-3.0.bin
+
+params:
+  min_duration_off: 0.09791355693027545
+  min_duration_on: 0.05537587440407595
