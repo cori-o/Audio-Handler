@@ -32,7 +32,8 @@ class SBEMB(SpeechBrain):
 
     def set_classifier(self):
         self.classifier = EncoderClassifier.from_hparams(
-            source=self.config['model_name']
+            source=self.config['model_name'],
+            run_opts={"device":self.device}
         )
 
     def set_srmodel(self):
