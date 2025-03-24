@@ -1,3 +1,4 @@
 .env
 ./dataset/*.wav
 ./dataset/chunk/*.wav
+*.ckpt
