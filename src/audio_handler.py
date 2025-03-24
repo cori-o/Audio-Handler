@@ -101,25 +101,6 @@ class VoiceEnhancer:
     '''
     음성 파일에서 음성을 강화한다. 
     '''
-    def amplify_volume(self, audio, target_db=-20, output_file="amplified_output.wav"):
-        """
-        볼륨 증폭 및 파일 저장
-        Args:
-            audio (AudioSegment): Pydub AudioSegment 객체
-            target_db (int): 목표 음압 레벨 (dBFS)
-            output_file (str): 저장할 파일 경로
-        Returns:
-            AudioSegment: 증폭된 AudioSegment 객체
-        """
-        # 현재 음압 계산 및 증폭량 적용
-        current_db = audio.dBFS
-        difference = target_db - current_db
-        amplified_audio = audio.apply_gain(difference)
-
-        amplified_audio.export(output_file, format="wav")
-        print(f"Amplified audio saved to {output_file}")
-        return amplified_audio
-
     def emphasize_nearby_voice(self, input_file, threshold=0.05, output_file=None):
         """
         가까운 음성을 강조하고 먼 목소리를 줄임
