@@ -3,3 +3,4 @@
 *.wav
 *.pyc
 *.bin
+/pretrained_models
