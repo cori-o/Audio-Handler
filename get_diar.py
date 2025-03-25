@@ -12,6 +12,7 @@ def main(args):
     diar_result = pyannot_diar.get_diar_result(pipeline, args.audio_file)
     print(diar_result)
 
+
 if __name__ == '__main__':
     cli_parser = argparse.ArgumentParser()
     cli_parser.add_argument('--model_config_path', type=str, default='./models')
