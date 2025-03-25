@@ -6,8 +6,8 @@ from pyannote.core import Segment
 from pathlib import Path
 import numpy as np 
 import torch
-import random 
-import os  
+import random
+import os
 
 class Pyannot:
     def __init__(self): 
@@ -37,7 +37,6 @@ class Pyannot:
         path_to_config = Path(path_to_config)
         print(f"Loading pyannote pipeline from {path_to_config}...")
         cwd = Path.cwd().resolve()    # store current working directory
-
         cd_to = path_to_config.parent.parent.resolve()
         os.chdir(cd_to)
 
@@ -57,7 +56,7 @@ class PyannotVAD(Pyannot):
         audio_in_memory = {"waveform": waveform, "sample_rate": sample_rate}
         vad_result = pipeline(audio_in_memory)
 
-        vad_timestamp = [] 
+        vad_timestamp = []
         for speech in vad_result.get_timeline().support():
             vad_timestamp.append((speech.start, speech.end))
         return vad_timestamp
@@ -80,6 +79,7 @@ class PyannotDIAR(Pyannot):
             return diar_result
         else:
             return diarization
+
 
 class PyannotOSD(Pyannot):   # Overlap Speech Detection
     def __init__(self):
