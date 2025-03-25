@@ -13,6 +13,7 @@ def main(args):
     vad_result = pyannot_vad.get_vad_timestamp(pipeline, args.audio_file)
     print(vad_result)
 
+
 if __name__ == '__main__':
     cli_parser = argparse.ArgumentParser()
     cli_parser.add_argument('--model_config_path', type=str, default='./models')
