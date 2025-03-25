@@ -1,11 +1,16 @@
 from pydub.effects import high_pass_filter, low_pass_filter
+from demucs.pretrained import get_model
+from demucs.apply import apply_model
 from pydub import AudioSegment
 import pyloudnorm as pyln
 import noisereduce as nr
 import soundfile as sf
+import numpy as np
 import subprocess
 import tempfile
+import torchaudio
 import librosa
+import torch
 import io
 import os 
 
@@ -95,6 +100,21 @@ class NoiseHandler:
             for temp_file in temp_files:   # 임시 파일 삭제
                 if os.path.exists(temp_file):
                     os.unlink(temp_file)
+
+    def separate_vocals_with_demucs(self, audio_file, output_dir='dataset/demucs'):
+        # 기존 환경 복사 후 threading 설정 추가
+        env = os.environ.copy()
+        env["MKL_THREADING_LAYER"] = "GNU"
+        try:
+            subprocess.run([
+                "demucs",
+                "--two-stems", "vocals",
+                "--out", output_dir,
+                audio_file
+            ], check=True, env=env)
+            print(f"Separated vocals saved in {output_dir}")
+        except subprocess.CalledProcessError as e:
+            print("🚨 Demucs 실행 중 오류 발생:", e)
 
 
 class VoiceEnhancer:
