@@ -5,4 +5,7 @@
 *.log
 
 # meeting records 파일 
-/meeting_records
+/dataset
+
+.git
+/pretrained_models
