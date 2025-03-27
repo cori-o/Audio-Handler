@@ -1,0 +1,8 @@
+# 환경변수 파일 
+# .env
+
+# log 파일 
+*.log
+
+# meeting records 파일 
+/meeting_records

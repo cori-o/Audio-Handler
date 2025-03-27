@@ -1,0 +1,14 @@
+huggingface-hub
+pandas 
+tqdm
+datasets
+load_dotenv
+psycopg2-binary
+schedule
+openpyxl
+numpy<2
+pydub
+pyannote.audio
+pyloudnorm
+noisereduce
+librosa
