@@ -12,3 +12,7 @@ pyannote.audio
 pyloudnorm
 noisereduce
 librosa
+demucs
+nsnet2-denoiser
+scipy==1.11.4
+nara_wpe
