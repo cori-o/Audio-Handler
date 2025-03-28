@@ -198,3 +198,76 @@ class VoiceEnhancer:
             sf.write(wav_buffer, loudness_normalized_audio, rate, format='WAV')
             wav_buffer.seek(0)
             return wav_buffer
+
+
+class AudioVisualizer:
+    def __init__(self, n_fft=1024, hop_length=256, n_mels=128):
+        self.n_fft = n_fft
+        self.hop_length = hop_length
+        self.n_mels = n_mels
+
+    def get_waveform(self, y, sr, title_prefix="", file_name=None):
+        plt.figure(figsize=(14, 3))
+        librosa.display.waveshow(y, sr=sr)
+        plt.title(f"{title_prefix} - Waveform")
+        plt.tight_layout()
+        if file_name:
+            plt.savefig(file_name, dpi=300)
+        plt.close()
+
+    def get_spectrogram(self, y, sr, title_prefix="", file_name=None):
+        D = librosa.amplitude_to_db(np.abs(librosa.stft(y, n_fft=self.n_fft, hop_length=self.hop_length)), ref=np.max)
+        plt.figure(figsize=(14, 3))
+        librosa.display.specshow(D, sr=sr, hop_length=self.hop_length, x_axis='time', y_axis='hz', cmap='magma')
+        plt.colorbar(format="%+2.0f dB")
+        plt.title(f"{title_prefix} - STFT Spectrogram")
+        plt.tight_layout()
+        if file_name:
+            plt.savefig(file_name, dpi=300)
+        plt.close()
+
+    def get_melspectrogram(self, y, sr, title_prefix="", file_name=None):
+        S = librosa.feature.melspectrogram(
+            y=y, sr=sr, n_fft=self.n_fft, hop_length=self.hop_length, n_mels=self.n_mels, power=2.0
+        )
+        S_dB = librosa.power_to_db(S, ref=np.max)
+        plt.figure(figsize=(14, 3))
+        librosa.display.specshow(S_dB, sr=sr, hop_length=self.hop_length, x_axis='time', y_axis='mel', cmap='magma')
+        plt.colorbar(format="%+2.0f dB")
+        plt.title(f"{title_prefix} - Mel Spectrogram")
+        plt.tight_layout()
+        if file_name:
+            plt.savefig(file_name, dpi=300)
+        plt.close()
+
+    def visualize_all(self, y, sr, title_prefix="", file_name=None):
+        # 전체를 한 번에 시각화 (waveform + STFT + Mel)
+        S = librosa.feature.melspectrogram(
+            y=y, sr=sr, n_fft=self.n_fft, hop_length=self.hop_length, n_mels=self.n_mels, power=2.0
+        )
+        S_dB = librosa.power_to_db(S, ref=np.max)
+        D = librosa.amplitude_to_db(np.abs(librosa.stft(y, n_fft=self.n_fft, hop_length=self.hop_length)), ref=np.max)
+
+        plt.figure(figsize=(14, 10))
+
+        # 1. Waveform
+        plt.subplot(3, 1, 1)
+        librosa.display.waveshow(y, sr=sr)
+        plt.title(f"{title_prefix} - Waveform")
+
+        # 2. STFT Spectrogram
+        plt.subplot(3, 1, 2)
+        librosa.display.specshow(D, sr=sr, hop_length=self.hop_length, x_axis='time', y_axis='hz', cmap='magma')
+        plt.colorbar(format="%+2.0f dB")
+        plt.title(f"{title_prefix} - STFT Spectrogram")
+
+        # 3. Mel Spectrogram
+        plt.subplot(3, 1, 3)
+        librosa.display.specshow(S_dB, sr=sr, hop_length=self.hop_length, x_axis='time', y_axis='mel', cmap='magma')
+        plt.colorbar(format="%+2.0f dB")
+        plt.title(f"{title_prefix} - Mel Spectrogram")
+
+        plt.tight_layout()
+        if file_name:
+            plt.savefig(file_name, dpi=300)
+        plt.close()
