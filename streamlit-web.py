@@ -25,13 +25,14 @@ if uploaded_file1 and uploaded_file2:
 
     # 시각화
     from tempfile import NamedTemporaryFile
-    from visualize_module import visualize_before_after_all  # 네 함수 import
+    from src import AudioVisualizer  # 네 함수 import
 
     output_path = "compare_streamlit.png"
-    visualize_before_after_all(y1, sr1, y2, sr2, file_name=output_path)
+    audio_visualizer = AudioVisualizer()
+
+    audio_visualizer.visualize_before_after_all(y1, sr1, y2, sr2, file_name=output_path)
 
     st.image(output_path, caption="Before vs After - 시각화 결과", use_column_width=True)
 
-    # 오디오 재생
     st.audio(uploaded_file1, format='audio/wav', start_time=start_sec)
     st.audio(uploaded_file2, format='audio/wav', start_time=start_sec)
