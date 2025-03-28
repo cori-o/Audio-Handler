@@ -16,3 +16,4 @@ demucs
 nsnet2-denoiser
 nara_wpe
 scipy==1.11.4
+streamlit
