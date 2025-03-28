@@ -1,4 +1,5 @@
 from pydub.effects import high_pass_filter, low_pass_filter
+from nsnet2_denoiser import NSnet2Enhancer
 from demucs.pretrained import get_model
 from demucs.apply import apply_model
 from pydub import AudioSegment
@@ -86,7 +87,6 @@ class NoiseHandler:
                 "-f", "wav",  # 출력 형식
                 "pipe:1" if not output_file else output_file  # 메모리로 반환하거나 파일로 저장
             ]
-
             if output_file:
                 subprocess.run(command, check=True)
                 print(f"Filtered audio saved to {output_file}")
@@ -102,7 +102,6 @@ class NoiseHandler:
                     os.unlink(temp_file)
 
     def separate_vocals_with_demucs(self, audio_file, output_dir='dataset/demucs'):
-        # 기존 환경 복사 후 threading 설정 추가
         env = os.environ.copy()
         env["MKL_THREADING_LAYER"] = "GNU"
         try:
@@ -115,6 +114,29 @@ class NoiseHandler:
             print(f"Separated vocals saved in {output_dir}")
         except subprocess.CalledProcessError as e:
             print("🚨 Demucs 실행 중 오류 발생:", e)
+
+    def denoise_audio(self, audio_file, model_type='nsnet', data_path=None):
+        if model_type == 'nsnet':
+            enhancer = NSnet2Enhancer(fs=48000)
+            sigIn, fs = sf.read(audio_file)
+            outSig = enhancer(sigIn, fs)
+
+            audioIn = AudioSegment.from_wav(audio_file)
+            audioOut = enhancer.pcm_16le(audioIn.raw_data)
+            audio_clean = AudioSegment(
+                data=audioOut,
+                sample_width=2,         # 16-bit PCM = 2 bytes
+                frame_rate=audioIn.frame_rate,
+                channels=audioIn.channels
+            )
+            if data_path: 
+                file_name = 'denoised_' + audio_file.split('/')[-1].split('.')[0] + '.wav'
+                save_path = os.path.join(data_path, file_name)
+                audio_clean.export(save_path, format="wav")
+                print(f"✔️ 잡음 제거된 오디오가 저장되었습니다: {save_path}")
+        elif model_type == '':
+            pass
+
 
 
 class VoiceEnhancer:
