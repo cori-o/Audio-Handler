@@ -17,7 +17,7 @@ def main(args):
     audio_emb = speaker_emb.get_emb(speaker_emb.classifier, args.audio_file)
     print(np.shape(audio_emb))
     print(audio_emb[:3])
-    print(speaker_emb.calc_emb_similarity(speaker_emb.srmodel, args.audio_file, './dataset/chunk/chunk_20250311_1.wav'))
+    print(speaker_emb.calc_emb_similarity(speaker_emb.srmodel, args.audio_file, './dataset/chunk/chunk_20250225_1.wav'))
 
 
 if __name__ == '__main__':
