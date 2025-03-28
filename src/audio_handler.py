@@ -3,6 +3,7 @@ from nsnet2_denoiser import NSnet2Enhancer
 from demucs.pretrained import get_model
 from demucs.apply import apply_model
 from pydub import AudioSegment
+import matplotlib.pyplot as plt
 import pyloudnorm as pyln
 import noisereduce as nr
 import soundfile as sf
@@ -270,4 +271,65 @@ class AudioVisualizer:
         plt.tight_layout()
         if file_name:
             plt.savefig(file_name, dpi=300)
+        plt.close()
+
+    def visualize_before_after_all(y_before, sr_before, y_after, sr_after, file_name=None):
+        n_fft = 1024
+        hop_length = 256
+        n_mels = 128
+
+        # ----- BEFORE 오디오 처리 -----
+        S_before = librosa.feature.melspectrogram(y=y_before, sr=sr_before, n_fft=n_fft,
+                                                hop_length=hop_length, n_mels=n_mels, power=2.0)
+        S_dB_before = librosa.power_to_db(S_before, ref=np.max)
+        D_before = librosa.amplitude_to_db(np.abs(librosa.stft(y_before, n_fft=n_fft, hop_length=hop_length)), ref=np.max)
+
+        # ----- AFTER 오디오 처리 -----
+        S_after = librosa.feature.melspectrogram(y=y_after, sr=sr_after, n_fft=n_fft,
+                                                hop_length=hop_length, n_mels=n_mels, power=2.0)
+        S_dB_after = librosa.power_to_db(S_after, ref=np.max)
+        D_after = librosa.amplitude_to_db(np.abs(librosa.stft(y_after, n_fft=n_fft, hop_length=hop_length)), ref=np.max)
+
+        # ----- 시각화 -----
+        plt.figure(figsize=(16, 12))
+
+        # BEFORE - Waveform
+        plt.subplot(6, 1, 1)
+        librosa.display.waveshow(y_before, sr=sr_before)
+        plt.title("Before - Waveform")
+
+        # BEFORE - STFT
+        plt.subplot(6, 1, 2)
+        librosa.display.specshow(D_before, sr=sr_before, hop_length=hop_length, x_axis='time', y_axis='hz', cmap='magma')
+        plt.colorbar(format="%+2.0f dB")
+        plt.title("Before - STFT Spectrogram")
+
+        # BEFORE - Mel
+        plt.subplot(6, 1, 3)
+        librosa.display.specshow(S_dB_before, sr=sr_before, hop_length=hop_length, x_axis='time', y_axis='mel', cmap='magma')
+        plt.colorbar(format="%+2.0f dB")
+        plt.title("Before - Mel Spectrogram")
+
+        # AFTER - Waveform
+        plt.subplot(6, 1, 4)
+        librosa.display.waveshow(y_after, sr=sr_after)
+        plt.title("After - Waveform")
+
+        # AFTER - STFT
+        plt.subplot(6, 1, 5)
+        librosa.display.specshow(D_after, sr=sr_after, hop_length=hop_length, x_axis='time', y_axis='hz', cmap='magma')
+        plt.colorbar(format="%+2.0f dB")
+        plt.title("After - STFT Spectrogram")
+
+        # AFTER - Mel
+        plt.subplot(6, 1, 6)
+        librosa.display.specshow(S_dB_after, sr=sr_after, hop_length=hop_length, x_axis='time', y_axis='mel', cmap='magma')
+        plt.colorbar(format="%+2.0f dB")
+        plt.title("After - Mel Spectrogram")
+
+        plt.tight_layout()
+
+        if file_name:
+            plt.savefig(file_name, dpi=300)
+
         plt.close()
