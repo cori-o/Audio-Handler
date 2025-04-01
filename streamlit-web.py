@@ -1,7 +1,7 @@
 import streamlit as st
 import librosa
 import matplotlib.pyplot as plt
-from src import AudioVisualizer
+from src import AudioVisualizer, AudioFileProcessor
 import librosa.display
 import numpy as np
 import io
@@ -67,6 +67,9 @@ if uploaded_file1 and uploaded_file2:
     y1 = y1[int(start_sec * sr1):int(end_sec * sr1)]
     y2 = y2[int(start_sec * sr2):int(end_sec * sr2)]
 
+    audio_file_processor = AudioFileProcessor()
+    
+
     # 시각화 진행
     audio_visualizer = AudioVisualizer()
     output_path = "compare_streamlit.png"
@@ -74,6 +77,13 @@ if uploaded_file1 and uploaded_file2:
 
     st.image(output_path, caption="Before vs After - 시각화 결과", use_column_width=True)
 
-    # 오디오 재생 (start_time 메가변수인지는 확인)
-    st.audio(uploaded_file1, format='audio/wav')
-    st.audio(uploaded_file2, format='audio/wav')
+    col_a, col_b = st.columns(2)
+
+    with col_a:
+        st.markdown("#### 🟦 Before")
+        st.audio(audio_file_processor.slice_to_audio_bytes(y1, sr1), format='audio/wav')
+
+    with col_b:
+        st.markdown("#### 🟩 After")
+        st.audio(audio_file_processor.slice_to_audio_bytes(y2, sr2), format='audio/wav')
+    
