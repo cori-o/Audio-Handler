@@ -8,6 +8,8 @@ import librosa
 import wave
 import re
 import os
+import io
+
 
 class DataProcessor:    
     def cleanse_text(self, text):
@@ -87,3 +89,9 @@ class AudioFileProcessor:
         audio_file = AudioSegment.from_file(m4a_path, format='m4a')
         wav_path = m4a_path.replace('m4a', 'wav')
         audio_file.export(wav_path, format='wav')
+
+    def slice_to_audio_bytes(self, y, sr):
+        buf = io.BytesIO()
+        sf.write(buf, y, sr, format='WAV')
+        buf.seek(0)
+        return buf
