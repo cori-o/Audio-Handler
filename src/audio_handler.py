@@ -273,7 +273,7 @@ class AudioVisualizer:
             plt.savefig(file_name, dpi=300)
         plt.close()
 
-    def visualize_before_after_all(y_before, sr_before, y_after, sr_after, file_name=None):
+    def visualize_before_after_all(self, y_before, sr_before, y_after, sr_after, file_name=None):
         n_fft = 1024
         hop_length = 256
         n_mels = 128
@@ -291,45 +291,43 @@ class AudioVisualizer:
         D_after = librosa.amplitude_to_db(np.abs(librosa.stft(y_after, n_fft=n_fft, hop_length=hop_length)), ref=np.max)
 
         # ----- 시각화 -----
-        plt.figure(figsize=(16, 12))
+        plt.figure(figsize=(16, 18))  # 세로 더 넓게
 
         # BEFORE - Waveform
         plt.subplot(6, 1, 1)
         librosa.display.waveshow(y_before, sr=sr_before)
-        plt.title("Before - Waveform")
-
-        # BEFORE - STFT
-        plt.subplot(6, 1, 2)
-        librosa.display.specshow(D_before, sr=sr_before, hop_length=hop_length, x_axis='time', y_axis='hz', cmap='magma')
-        plt.colorbar(format="%+2.0f dB")
-        plt.title("Before - STFT Spectrogram")
-
-        # BEFORE - Mel
-        plt.subplot(6, 1, 3)
-        librosa.display.specshow(S_dB_before, sr=sr_before, hop_length=hop_length, x_axis='time', y_axis='mel', cmap='magma')
-        plt.colorbar(format="%+2.0f dB")
-        plt.title("Before - Mel Spectrogram")
+        plt.title("Before - Waveform", fontsize=14)
 
         # AFTER - Waveform
-        plt.subplot(6, 1, 4)
+        plt.subplot(6, 1, 2)
         librosa.display.waveshow(y_after, sr=sr_after)
-        plt.title("After - Waveform")
+        plt.title("After - Waveform", fontsize=14)
+
+        # BEFORE - STFT
+        plt.subplot(6, 1, 3)
+        librosa.display.specshow(D_before, sr=sr_before, hop_length=hop_length, x_axis='time', y_axis='hz', cmap='magma')
+        plt.colorbar(format="%+2.0f dB")
+        plt.title("Before - STFT Spectrogram", fontsize=14)
 
         # AFTER - STFT
-        plt.subplot(6, 1, 5)
+        plt.subplot(6, 1, 4)
         librosa.display.specshow(D_after, sr=sr_after, hop_length=hop_length, x_axis='time', y_axis='hz', cmap='magma')
         plt.colorbar(format="%+2.0f dB")
-        plt.title("After - STFT Spectrogram")
+        plt.title("After - STFT Spectrogram", fontsize=14)
 
+        # BEFORE - Mel
+        plt.subplot(6, 1, 5)
+        librosa.display.specshow(S_dB_before, sr=sr_before, hop_length=hop_length, x_axis='time', y_axis='mel', cmap='magma')
+        plt.colorbar(format="%+2.0f dB")
+        plt.title("Before - Mel Spectrogram", fontsize=14)
+        
         # AFTER - Mel
         plt.subplot(6, 1, 6)
         librosa.display.specshow(S_dB_after, sr=sr_after, hop_length=hop_length, x_axis='time', y_axis='mel', cmap='magma')
         plt.colorbar(format="%+2.0f dB")
-        plt.title("After - Mel Spectrogram")
+        plt.title("After - Mel Spectrogram", fontsize=14)
 
-        plt.tight_layout()
-
+        plt.tight_layout(pad=3.0)  # 서브플롯 간격 여유 있게
         if file_name:
             plt.savefig(file_name, dpi=300)
-
         plt.close()
