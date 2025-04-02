@@ -21,32 +21,6 @@ class NoiseHandler:
     '''
     음성 파일에서 노이즈를 제거한다.
     '''
-    def remove_background_noise(self, input_file, output_file=None, prop_decrease=None):
-        """
-        배경 잡음을 제거하여 가까운 목소리를 강조
-        args:
-            input_file (str): 입력 오디오 파일.
-            output_file (str): 출력 오디오 파일.
-        """
-        try:
-            y, sr = librosa.load(input_file, sr=None)   # 오디오 로드
-        except:
-            audio_buffer = io.BytesIO()
-            input_file.export(audio_buffer, format="wav")
-            audio_buffer.seek(0)  # 버퍼의 시작 위치로 이동
-            y, sr = librosa.load(audio_buffer, sr=None)
-        # noise_profile = y[:sr]   # 배경 잡음 프로파일 추출 (초기 1초)
-        # y_denoised = nr.reduce_noise(y=y, sr=sr, y_noise=noise_profile, prop_decreaese=prop_decrease)   # 잡음 제거
-        y_denoised = nr.reduce_noise(y=y, sr=sr, prop_decrease=prop_decrease)
-        if output_file: 
-            sf.write(output_file, y_denoised, sr)
-            print(f"Saved denoised audio to {output_file}")
-        
-        wav_buffer = io.BytesIO()   # 메모리 내 WAV 파일 생성
-        sf.write(wav_buffer, y_denoised, sr, format='WAV')
-        wav_buffer.seek(0)   # 파일 포인터를 처음으로 이동
-        return wav_buffer
-
     def filter_audio_with_ffmpeg(self, input_file, high_cutoff=100, low_cutoff=3500, output_file=None):
         """
         FFmpeg을 사용한 오디오 필터링 (고역대, 저역대).
