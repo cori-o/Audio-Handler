@@ -109,8 +109,6 @@ class NoiseHandler:
                 save_path = os.path.join(data_path, file_name)
                 audio_clean.export(save_path, format="wav")
                 print(f"✔️ 잡음 제거된 오디오가 저장되었습니다: {save_path}")
-        elif model_type == '':
-            pass
 
 
 
