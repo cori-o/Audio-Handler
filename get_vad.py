@@ -1,5 +1,4 @@
 from src import PyannotVAD
-from pyannote.audio import Pipeline
 from pathlib import Path
 import argparse
 import torch
