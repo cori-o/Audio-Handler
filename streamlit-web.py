@@ -16,7 +16,6 @@ st.markdown(
 )
 
 col1, col2 = st.columns(2)
-
 with col1:
     st.markdown(
         """
@@ -78,7 +77,6 @@ if uploaded_file1 and uploaded_file2:
     st.image(output_path, caption="Before vs After - 시각화 결과", use_column_width=True)
 
     col_a, col_b = st.columns(2)
-
     with col_a:
         st.markdown("#### 🟦 Before")
         st.audio(audio_file_processor.slice_to_audio_bytes(y1, sr1), format='audio/wav')
@@ -86,4 +84,3 @@ if uploaded_file1 and uploaded_file2:
     with col_b:
         st.markdown("#### 🟩 After")
         st.audio(audio_file_processor.slice_to_audio_bytes(y2, sr2), format='audio/wav')
-    
