@@ -1,6 +1,7 @@
 
 from scipy.spatial.distance import cdist
 from pydub import AudioSegment
+from io import BytesIO
 import soundfile as sf
 import numpy as np 
 import tempfile
@@ -33,12 +34,20 @@ class VectorProcessor:
 
 
 class AudioFileProcessor:
-    def align_audio(self, reference_file, target_file, output_file):
-        lag, sr = self.calculate_time_lag(reference_file, target_file)   # 시간차 계산
-        target, _ = librosa.load(target_file, sr=sr)   # 오디오 로드
-        aligned_target = np.pad(target, (lag, 0), mode='constant') if lag > 0 else target[-lag:]
-        sf.write(output_file, aligned_target, sr)     # 정렬된 오디오 저장
-        print(f"Aligned audio saved to {output_file}")\
+    def save_audio(self, audio_file, save_path, file_name):
+        '''
+        audio_file: AudioSegment or BytesIO
+        '''
+        full_path = os.path.join(save_path, file_name)
+        if isinstance(audio_file, BytesIO):
+            audio_file.seek(0)
+            audio_file = AudioSegment.from_file(audio_file, format="wav")
+
+        if isinstance(audio_file, AudioSegment):
+            audio_file.export(full_path, format="wav")
+            print(f"✔️ 오디오가 저장되었습니다: {full_path}")
+        else:
+            raise TypeError("지원되지 않는 형식입니다: AudioSegment 또는 BytesIO만 지원됩니다.")
 
     def chunk_audio(self, audio_file_path, chunk_length=60, chunk_file_path=None, chunk_file_name=None):
         audio = AudioSegment.from_file(audio_file_path)
@@ -89,9 +98,3 @@ class AudioFileProcessor:
         audio_file = AudioSegment.from_file(m4a_path, format='m4a')
         wav_path = m4a_path.replace('m4a', 'wav')
         audio_file.export(wav_path, format='wav')
-
-    def slice_to_audio_bytes(self, y, sr):
-        buf = io.BytesIO()
-        sf.write(buf, y, sr, format='WAV')
-        buf.seek(0)
-        return buf

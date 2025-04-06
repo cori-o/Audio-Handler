@@ -3,14 +3,16 @@ from nsnet2_denoiser import NSnet2Enhancer
 from demucs.pretrained import get_model
 from demucs.apply import apply_model
 from pydub import AudioSegment
+from nara_wpe.wpe import wpe
+from io import BytesIO
 import matplotlib.pyplot as plt
 import pyloudnorm as pyln
 import noisereduce as nr
 import soundfile as sf
 import numpy as np
+import torchaudio
 import subprocess
 import tempfile
-import torchaudio
 import librosa
 import torch
 import io
@@ -19,7 +21,8 @@ import os
 
 class NoiseHandler: 
     '''
-    음성 파일에서 노이즈를 제거한다.
+    음성 파일에서 노이즈를 관리하는 클래스 
+    주파수 대역 필터링, 노이즈 억제, 반향 제거 기능 제공 
     '''
     def filter_audio_with_ffmpeg(self, input_file, high_cutoff=100, low_cutoff=3500, output_file=None):
         """
@@ -76,40 +79,67 @@ class NoiseHandler:
                 if os.path.exists(temp_file):
                     os.unlink(temp_file)
 
-    def separate_vocals_with_demucs(self, audio_file, output_dir='dataset/demucs'):
-        env = os.environ.copy()
-        env["MKL_THREADING_LAYER"] = "GNU"
-        try:
-            subprocess.run([
-                "demucs",
-                "--two-stems", "vocals",
-                "--out", output_dir,
-                audio_file
-            ], check=True, env=env)
-            print(f"Separated vocals saved in {output_dir}")
-        except subprocess.CalledProcessError as e:
-            print("🚨 Demucs 실행 중 오류 발생:", e)
+    def denoise_audio(self, audio_file, model_type='nsnet'):
+        if isinstance(audio_file, str):
+            sigIn, fs = sf.read(audio_file)
+            audioIn = AudioSegment.from_wav(audio_file)
+        else:
+            audio_file.seek(0)
+            sigIn, fs = sf.read(audio_file, format="WAV")
+            audio_file.seek(0)
+            audioIn = AudioSegment.from_file(audio_file, format="wav")
+        buffer = BytesIO()
 
-    def denoise_audio(self, audio_file, model_type='nsnet', data_path=None):
         if model_type == 'nsnet':
             enhancer = NSnet2Enhancer(fs=48000)
-            sigIn, fs = sf.read(audio_file)
             outSig = enhancer(sigIn, fs)
-
-            audioIn = AudioSegment.from_wav(audio_file)
-            audioOut = enhancer.pcm_16le(audioIn.raw_data)
+            # audioOut = enhancer.pcm_16le(audioIn.raw_data)
+            pcm_int16 = np.int16(outSig*32767)
             audio_clean = AudioSegment(
-                data=audioOut,
+                #data=audioOut,
+                data=pcm_int16.tobytes(),
                 sample_width=2,         # 16-bit PCM = 2 bytes
                 frame_rate=audioIn.frame_rate,
                 channels=audioIn.channels
             )
-            if data_path: 
-                file_name = 'denoised_' + audio_file.split('/')[-1].split('.')[0] + '.wav'
-                save_path = os.path.join(data_path, file_name)
-                audio_clean.export(save_path, format="wav")
-                print(f"✔️ 잡음 제거된 오디오가 저장되었습니다: {save_path}")
+        audio_clean.export(buffer, format='wav')   
+        buffer.seek(0)
+        return audio_clean
+    
+    def deverve_audio(self, audio_input, iterations=5, taps=10, delay=3, data_path=None):
+        if isinstance(audio_input, str):
+            audio, sr = sf.read(audio_input)
+        elif isinstance(audio_input, BytesIO):
+            audio_input.seek(0)
+            audio, sr = sf.read(audio_input, format="WAV")
+        elif isinstance(audio_input, AudioSegment):
+            samples = np.frombuffer(audio_input.raw_data, dtype=np.int16).astype(np.float32) / 32767.0
+            audio = samples.reshape((-1, audio_input.channels)).T
+            sr = audio_input.frame_rate
+        else:
+            raise TypeError("지원되지 않는 입력 타입입니다: str, BytesIO, AudioSegment 중 하나만 사용해주세요.")
 
+        # mono 처리
+        if audio.ndim == 1:
+            audio = audio[:, np.newaxis]
+        audio = audio.T    # shape: (channels, samples)
+
+        deverved_audio = wpe(audio, iterations=iterations, taps=taps, delay=delay)
+        deverved_audio = deverved_audio.T  # → (samples, channels)
+
+        pcm_int16 = np.int16(deverved_audio * 32767)
+        audio_bytes = pcm_int16.tobytes()
+
+        audio_segment = AudioSegment(
+            data=audio_bytes,
+            sample_width=2,
+            frame_rate=sr,
+            channels=deverved_audio.shape[1] if deverved_audio.ndim > 1 else 1
+        )
+        buffer = BytesIO()
+        audio_segment.export(buffer, format="wav")
+        buffer.seek(0)
+        return buffer
 
 
 class VoiceEnhancer:
@@ -150,7 +180,6 @@ class VoiceEnhancer:
         """
         LUFS 기반 오디오 정규화
         """
-        #print(audio_input)
         if isinstance(audio_input, io.BytesIO):
             audio_input.seek(0)
             data, rate = sf.read(audio_input)
@@ -171,6 +200,22 @@ class VoiceEnhancer:
             sf.write(wav_buffer, loudness_normalized_audio, rate, format='WAV')
             wav_buffer.seek(0)
             return wav_buffer
+
+
+class VoiceSeperator:
+    def separate_vocals_with_demucs(self, audio_file, output_dir='dataset/demucs'):
+        env = os.environ.copy()
+        env["MKL_THREADING_LAYER"] = "GNU"
+        try:
+            subprocess.run([
+                "demucs",
+                "--two-stems", "vocals",
+                "--out", output_dir,
+                audio_file
+            ], check=True, env=env)
+            print(f"Separated vocals saved in {output_dir}")
+        except subprocess.CalledProcessError as e:
+            print("🚨 Demucs 실행 중 오류 발생:", e)
 
 
 class AudioVisualizer:

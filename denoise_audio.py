@@ -1,12 +1,17 @@
-from src import NoiseHandler
+from src import NoiseHandler, AudioFileProcessor
 import argparse 
 import time 
 import os 
 
 def main(args):
     noise_handler = NoiseHandler()
-    time_s = time.time()    
-    noise_handler.denoise_audio(args.file_name, model_type=args.model_type, data_path='./dataset/')
+    audio_file_p = AudioFileProcessor()
+    save_path = './dataset/outputs'
+    file_name = 'deverved_' + args.file_name
+
+    time_s = time.time()      
+    denoised_audio = noise_handler.denoise_audio(args.file_name, chunk_length=args.chunk_length, model_type=args.model_type)
+    audio_file_p.save_audio(denoised_audio, save_path, file_name)
     time_e = time.time() 
     print(f"{args.file_name.split('/')[-1]} 잡음 제거 소요 시간: {round(time_e - time_s, 2)}초")
 
