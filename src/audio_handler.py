@@ -85,18 +85,21 @@ class NoiseHandler:
             audioIn = AudioSegment.from_wav(audio_file)
         else:
             audio_file.seek(0)
-            sigIn, fs = sf.read(audio_file, format="WAV")
+            try:   # raw data 
+                sigIn, fs = sf.read(audio_file, format="WAV")
+            except:   # AudioSeg
+                sigIn, fs = sf.read(audio_file)
             audio_file.seek(0)
             audioIn = AudioSegment.from_file(audio_file, format="wav")
+        
         buffer = BytesIO()
-
         if model_type == 'nsnet':
             enhancer = NSnet2Enhancer(fs=48000)
             outSig = enhancer(sigIn, fs)
             # audioOut = enhancer.pcm_16le(audioIn.raw_data)
             pcm_int16 = np.int16(outSig*32767)
             audio_clean = AudioSegment(
-                #data=audioOut,
+                # data=audioOut,
                 data=pcm_int16.tobytes(),
                 sample_width=2,         # 16-bit PCM = 2 bytes
                 frame_rate=audioIn.frame_rate,
@@ -106,7 +109,7 @@ class NoiseHandler:
         buffer.seek(0)
         return audio_clean
     
-    def deverve_audio(self, audio_input, iterations=5, taps=10, delay=3, data_path=None):
+    def deverve_audio(self, audio_input, iterations=5, taps=10, delay=3):
         if isinstance(audio_input, str):
             audio, sr = sf.read(audio_input)
         elif isinstance(audio_input, BytesIO):
@@ -114,22 +117,21 @@ class NoiseHandler:
             audio, sr = sf.read(audio_input, format="WAV")
         elif isinstance(audio_input, AudioSegment):
             samples = np.frombuffer(audio_input.raw_data, dtype=np.int16).astype(np.float32) / 32767.0
-            audio = samples.reshape((-1, audio_input.channels)).T
+            channels = audio_input.channels
             sr = audio_input.frame_rate
+            audio = samples.reshape((-1, channels))
         else:
             raise TypeError("지원되지 않는 입력 타입입니다: str, BytesIO, AudioSegment 중 하나만 사용해주세요.")
 
-        # mono 처리
-        if audio.ndim == 1:
+        if audio.ndim == 1:   # mono 처리
             audio = audio[:, np.newaxis]
-        audio = audio.T    # shape: (channels, samples)
-
+        audio = audio.T    # shape: (channels, samples)  : (1, 28699936) 형태.. (28699936, 1) 형태면 메모리 오류
+        print(f"[DEBUG] WPE input shape: {audio.shape}")  # (channels, samples)
         deverved_audio = wpe(audio, iterations=iterations, taps=taps, delay=delay)
         deverved_audio = deverved_audio.T  # → (samples, channels)
 
         pcm_int16 = np.int16(deverved_audio * 32767)
         audio_bytes = pcm_int16.tobytes()
-
         audio_segment = AudioSegment(
             data=audio_bytes,
             sample_width=2,
