@@ -6,7 +6,7 @@ def main(args):
     frontend_processor = FrontendProcessor()
     frontend_processor.set_env()
     clean_audio = frontend_processor.process_audio(args.file_name, deverve=True)
-    frontend_processor.save_audio(clean_audio, './dataset/denoised/deverved-pipe-test.wav')
+    frontend_processor.save_audio(clean_audio, './dataset/denoised/normalized-pipe-test.wav')
 
 
 if __name__ == '__main__':
