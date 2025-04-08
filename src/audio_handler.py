@@ -79,18 +79,18 @@ class NoiseHandler:
                 if os.path.exists(temp_file):
                     os.unlink(temp_file)
 
-    def denoise_audio(self, audio_file, model_type='nsnet'):
-        if isinstance(audio_file, str):
-            sigIn, fs = sf.read(audio_file)
-            audioIn = AudioSegment.from_wav(audio_file)
+    def denoise_audio(self, audio_input, model_type='nsnet'):
+        if isinstance(audio_input, str):
+            sigIn, fs = sf.read(audio_input)
+            audioIn = AudioSegment.from_wav(audio_input)
         else:
-            audio_file.seek(0)
+            audio_input.seek(0)
             try:   # raw data 
-                sigIn, fs = sf.read(audio_file, format="WAV")
+                sigIn, fs = sf.read(audio_input, format="WAV")
             except:   # AudioSeg
-                sigIn, fs = sf.read(audio_file)
-            audio_file.seek(0)
-            audioIn = AudioSegment.from_file(audio_file, format="wav")
+                sigIn, fs = sf.read(audio_input)
+            audio_input.seek(0)
+            audioIn = AudioSegment.from_file(audio_input, format="wav")
         
         buffer = BytesIO()
         if model_type == 'nsnet':
@@ -148,7 +148,7 @@ class VoiceEnhancer:
     '''
     음성 파일에서 음성을 강화한다. 
     '''
-    def emphasize_nearby_voice(self, input_file, threshold=0.05, output_file=None):
+    def emphasize_nearby_voice(self, audio_input, threshold=0.05, output_file=None):
         """
         가까운 음성을 강조하고 먼 목소리를 줄임
         args:
@@ -157,7 +157,7 @@ class VoiceEnhancer:
             threshold (float): 에너지 기준값 (낮을수록 약한 신호 제거)
         """
         try:
-            y, sr = librosa.load(input_file, sr=None)   # 오디오 로드
+            y, sr = librosa.load(audio_input, sr=None)   # 오디오 로드
         except:
             audio_buffer = io.BytesIO()
             input_file.export(audio_buffer, format="wav")
@@ -175,33 +175,32 @@ class VoiceEnhancer:
         else:
             audio_buffer = io.BytesIO()
             sf.write(audio_buffer, y_filtered, sr, format="WAV")
-            audio_buffer.seek(0)  # 버퍼의 시작 위치로 이동
+            audio_buffer.seek(0)    # 버퍼의 시작 위치로 이동
             return audio_buffer
 
-    def normalize_audio_lufs(self, audio_input, target_lufs=-14.0, output_file=None):
+    def normalize_audio_lufs(self, audio_input, target_lufs=-20.0):
         """
         LUFS 기반 오디오 정규화
         """
-        if isinstance(audio_input, io.BytesIO):
+        if isinstance(audio_input, AudioSegment):
+            buf = BytesIO()
+            audio_input.export(buf, format="wav")
+            buf.seek(0)
+            audio_input = buf  # 덮어쓰기
+
+        elif isinstance(audio_input, io.BytesIO):
             audio_input.seek(0)
-            data, rate = sf.read(audio_input)
-        else:
-            data, rate = sf.read(audio_input)
 
         # 현재 LUFS 계산 및 정규화
+        data, rate = sf.read(audio_input)
         meter = pyln.Meter(rate)
         loudness = meter.integrated_loudness(data)
         loudness_normalized_audio = pyln.normalize.loudness(data, loudness, target_lufs)
 
-        if output_file:
-            sf.write(output_file, loudness_normalized_audio, rate)
-            print(f"Saved normalized audio to {output_file}")
-            return output_file
-        else:
-            wav_buffer = io.BytesIO()
-            sf.write(wav_buffer, loudness_normalized_audio, rate, format='WAV')
-            wav_buffer.seek(0)
-            return wav_buffer
+        wav_buffer = io.BytesIO()
+        sf.write(wav_buffer, loudness_normalized_audio, rate, format='WAV')
+        wav_buffer.seek(0)
+        return wav_buffer
 
 
 class VoiceSeperator:
