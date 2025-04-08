@@ -160,7 +160,7 @@ class VoiceEnhancer:
             y, sr = librosa.load(audio_input, sr=None)   # 오디오 로드
         except:
             audio_buffer = io.BytesIO()
-            input_file.export(audio_buffer, format="wav")
+            audio_input.export(audio_buffer, format="wav")
             audio_buffer.seek(0)  # 버퍼의 시작 위치로 이동
             y, sr = librosa.load(audio_buffer, sr=None)           
         rms = librosa.feature.rms(y=y)[0]         # RMS 에너지 계산
