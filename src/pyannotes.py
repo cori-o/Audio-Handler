@@ -117,6 +117,26 @@ class PyannotDIAR(Pyannot):
         print(f'non overlapped segment: {non_overlapped_segments}')
         return resegmented_diar 
 
+    def save_as_rttm(self, diar_result, output_rttm_path=None, file_name=None):
+        '''
+        rttm: SPEAKER <file-id> <channel> <start-time> <duration> <NA> <NA> <speaker-id> <NA> <NA>
+        '''
+        with open(output_rttm_path, "w") as f:
+            for (start_time, end_time), speaker in diar_result:
+                duration = end_time - start_time
+                rttm_line = f"SPEAKER {file_name} 1 {start_time:.3f} {duration:.3f} <NA> <NA> {speaker} <NA> <NA>\n"
+                f.write(rttm_line)
+
+    def save_as_emb(self, embeddings, output_emb_path=None):
+        import numpy as np 
+        np.save(output_emb_path, embeddings)
+
+    def load_emb_npy(self, npy_emb_path=None):
+        if npy_emb_path is None:
+            raise ValueError("npy_emb_path must be specified.")
+        embeddings = np.load(npy_emb_path)
+        return embeddings
+
 
 class PyannotOSD(Pyannot):   # Overlap Speech Detection
     def __init__(self):
