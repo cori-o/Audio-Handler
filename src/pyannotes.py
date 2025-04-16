@@ -91,6 +91,13 @@ class PyannotDIAR(Pyannot):
                     diar_result.append([(start_time, end_time), speaker])
         return diar_result, embeddings
 
+    def concat_diar_result(self, diar_result, chunk_offset=None):
+        total_diar_result = []
+        for idx, diar in enumerate(diar_result):
+            offset_result = [((start_time + chunk_offset * idx, end_time + chunk_offset * idx), speaker) for (start_time, end_time), speaker in diar]
+            total_diar_result.extend(offset_result)
+        return total_diar_result
+
 
 class PyannotOSD(Pyannot):   # Overlap Speech Detection
     def __init__(self):
