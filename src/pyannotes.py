@@ -51,16 +51,21 @@ class PyannotVAD(Pyannot):
         super().__init__()
 
     def get_vad_timestamp(self, pipeline, audio_file):
-        import torchaudio
-        waveform, sample_rate = torchaudio.load(audio_file)
+        if isinstance(audio_file, AudioSegment):
+            buffer = BytesIO()
+            audio_file.export(buffer, format="wav")
+            buffer.seek(0)
+            waveform, sample_rate = torchaudio.load(buffer)
+        elif isinstance(audio_file, (str, bytes, os.PathLike)):
+            waveform, sample_rate = torchaudio.load(audio_file)
+        else:
+            raise TypeError("지원되지 않는 오디오 형식입니다.")
         audio_in_memory = {"waveform": waveform, "sample_rate": sample_rate}
         vad_result = pipeline(audio_in_memory)
-
         vad_timestamp = []
         for speech in vad_result.get_timeline().support():
             vad_timestamp.append((speech.start, speech.end))
         return vad_timestamp
-
 
 class PyannotDIAR(Pyannot):
     def __init__(self):
