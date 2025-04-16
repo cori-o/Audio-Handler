@@ -73,17 +73,23 @@ class PyannotDIAR(Pyannot):
   
     def get_diar_result(self, pipeline, audio_file, num_speakers=None, return_embeddings=False):
         diarization = pipeline(audio_file, num_speakers=num_speakers, return_embeddings=return_embeddings)
+        diar_result = []
+        embeddings = None 
         if return_embeddings == False:
-            diar_result = []
             for segment, _, speaker in diarization.itertracks(yield_label=True):
                 start_time = segment.start 
                 end_time = segment.end
                 duration = end_time - start_time 
-                if duration >= 0.7:
+                if duration >= 0.3:
                     diar_result.append([(start_time, end_time), speaker])
-            return diar_result
         else:
-            return diarization
+            embeddings = diarization[1]
+            for segment, _, speaker in diarization[0].itertracks(yield_label=True):
+                start_time, end_time = segment.start, segment.end 
+                duration = end_time - start_time 
+                if duration >= 0.3:
+                    diar_result.append([(start_time, end_time), speaker])
+        return diar_result, embeddings
 
 
 class PyannotOSD(Pyannot):   # Overlap Speech Detection
