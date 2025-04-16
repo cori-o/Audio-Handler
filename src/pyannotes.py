@@ -98,6 +98,25 @@ class PyannotDIAR(Pyannot):
             total_diar_result.extend(offset_result)
         return total_diar_result
 
+    def resegment_result(self, vad_result, diar_result):
+        '''
+        resegment diar result using vad result
+        diar_result = [[diar result of chunk 1], [diar result of chunk 2], ... ]    (time_s, time_e), 'SPEAKER_00' 
+        1. delete speaker which not in vad_result 
+        2. add speaker info which in vad_result and not in diar_result   - new speaker: unknown   - skip 
+        '''
+        non_overlapped_segments = []
+        resegmented_diar = [] 
+        vad_tree = IntervalTree(Interval(time_s, time_e) for time_s, time_e in vad_result)
+        for (time_s, time_e), speaker in diar_result:
+            intersections = vad_tree.overlap(time_s, time_e)
+            if not intersections:
+                non_overlapped_segments.append(((time_s, time_e), speaker))
+            for interval in intersections:
+                resegmented_diar.append(((time_s, time_e), speaker))
+        print(f'non overlapped segment: {non_overlapped_segments}')
+        return resegmented_diar 
+
 
 class PyannotOSD(Pyannot):   # Overlap Speech Detection
     def __init__(self):
