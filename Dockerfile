@@ -1,7 +1,7 @@
 # Dockerfile for Audio Handler  
 # write by Jaedong, Oh (2025.05.16)
 # --- Builder stage ---
-FROM python:3.12-slim-bullseye as builder
+FROM python:3.12-slim-bullseye AS builder
 WORKDIR /app
 ARG GITHUB_TOKEN
 
@@ -24,5 +24,5 @@ ENV PATH="/opt/venv/bin:$PATH"
 WORKDIR /audio-handler
 
 COPY --from=builder /opt/venv /opt/venv
-RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg
+RUN apt-get update && apt-get install -y --no-install-recommends git ffmpeg
 # CMD ["python", "main.py"]
