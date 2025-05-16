@@ -1,10 +1,6 @@
 huggingface-hub
 pandas 
-tqdm
-datasets
 load_dotenv
-psycopg2-binary
-schedule
 openpyxl
 numpy<2
 pydub
@@ -13,7 +9,5 @@ pyloudnorm
 noisereduce
 librosa
 demucs
-nsnet2-denoiser
 nara_wpe
-scipy==1.11.4
 streamlit
